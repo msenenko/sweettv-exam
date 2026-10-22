@@ -74,6 +74,31 @@ NORMALIZATIONS = ("minmax", "alternative")
 CBF_WEIGHTS = {"cat": 0.5, "genre": 1.0, "channel": 0.5, "tfidf": 3.0}
 
 
+
+def load_schedule_details_with_channels(
+    data_dir: Path, week_lo: int, week_hi: int
+):
+    filename = WINDOW_SCHEDULE.get((week_lo, week_hi))
+    if filename is None:
+        raise ValueError(f"no schedule mapping for weeks {week_lo}-{week_hi}")
+    frame = pd.read_csv(
+        data_dir / filename,
+        usecols=["start_time", "channel_id", "tv_show_id"],
+    )
+    start = pd.to_datetime(frame["start_time"], format="%d.%m.%Y %H:%M:%S")
+    week = start.dt.isocalendar().week.astype(int)
+    mask = week.between(week_lo, week_hi) & frame["tv_show_id"].ne(0)
+    schedule = frame.loc[mask]
+    counts = schedule.groupby("tv_show_id").size()
+    channels = schedule.groupby("tv_show_id")["channel_id"].agg(
+        lambda values: sorted({int(value) for value in values})
+    )
+    # per (show, channel) counts
+    show_ch_counts = schedule.groupby(["tv_show_id", "channel_id"]).size()
+    return counts, channels.to_dict(), int(len(schedule)), show_ch_counts
+
+
+
 def load_schedule_details(
     data_dir: Path, week_lo: int, week_hi: int
 ):
