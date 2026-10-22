@@ -1,6 +1,6 @@
 # Step 7: content-based filtering
 
-Motivation: from validation truth analysis, 44.1% of unique truth show-user pairs are shows the user never watched in training, and 44.1% of unique truth shows are absent from training interactions. History/PPR/MF cannot score unseen shows well; content features allow generalization.
+Motivation: using qualifying training interactions (iso_week 11-20, frac >= 0.3). Over validation truth pairs (submission users, frac >= 0.8 in weeks 21-30, n_pairs=42831): 11767 pairs (27.473%) were watched by the same user in training interactions; 11231 pairs (26.222%) are shows absent from any qualifying training interaction. The earlier 44.1% figures were wrong (double-counting / incorrect comparison) — both quantities are ~26-27%, not identical.
 
 ## Features (from schedule metadata, allowed for target window)
 Item vectors built from `export_arh_21-30-final.csv` (validation) / `export_arh_31-42-final.csv` (test) metadata for pool shows:
