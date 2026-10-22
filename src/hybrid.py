@@ -29,6 +29,7 @@ try:
         ppr,
         transition_blocks,
     )
+    from .cbf import compute_cbf
 except ImportError:
     from evaluate import (
         K,
@@ -49,6 +50,7 @@ except ImportError:
         ppr,
         transition_blocks,
     )
+    from cbf import compute_cbf
 
 HISTORY_THRESHOLD = 0.3
 PPR_ALPHA = 0.7
@@ -66,8 +68,10 @@ WM_VALUES = (0.0, 0.5)
 WG_VALUES = (0.5, 1.0, 2.0)
 WA_VALUES = (1.0, 1.5, 2.0, 3.0)
 WC_VALUES = (0.0, 1.0, 2.0)
-COMPONENT_WEIGHTS = ("P", "M", "G", "A", "C")
+WK_VALUES = (0.0, 0.5, 1.0, 2.0)
+COMPONENT_WEIGHTS = ("P", "M", "G", "A", "C", "K")
 NORMALIZATIONS = ("minmax", "alternative")
+CBF_WEIGHTS = {"cat": 0.5, "genre": 1.0, "channel": 0.5, "tfidf": 3.0}
 
 
 def load_schedule_details(
@@ -305,6 +309,7 @@ def build_components(
     train_weeks: tuple[int, int],
     target_weeks: tuple[int, int],
     normalization: str = "minmax",
+    include_cbf: bool = False,
 ):
     train_qualifying = interactions.loc[
         interactions["iso_week"].between(*train_weeks)
@@ -329,6 +334,17 @@ def build_components(
         train_qualifying, users, pool
     )
     raw_mf, mf_metadata = mf_component(train_mf, users, pool)
+    raw_cbf = None
+    if include_cbf:
+        raw_cbf, _, _ = compute_cbf(
+            interactions,
+            users,
+            pool,
+            data_dir,
+            train_weeks,
+            target_weeks,
+            CBF_WEIGHTS,
+        )
     fallback_order = popularity_order(
         train_qualifying.loc[
             train_qualifying["tv_show_id"].isin(pool)
@@ -345,6 +361,8 @@ def build_components(
             "A": normalize_vector(raw_schedule),
             "C": normalize_rows(raw_channel),
         }
+        if raw_cbf is not None:
+            components["K"] = normalize_rows(raw_cbf.astype(np.float32))
     elif normalization == "alternative":
         components = {
             "R": raw_history.astype(np.float32),
@@ -354,6 +372,8 @@ def build_components(
             "A": normalize_vector(raw_schedule),
             "C": raw_channel.astype(np.float32),
         }
+        if raw_cbf is not None:
+            components["K"] = normalize_by_row_max(raw_cbf.astype(np.float32))
     else:
         raise ValueError(f"unknown normalization: {normalization}")
     metadata = {
@@ -386,12 +406,14 @@ def score_components(
 ) -> np.ndarray:
     scores = (
         components["R"].copy()
-        if include_history
-        else np.zeros_like(components["R"])
+        if include_history and "R" in components
+        else np.zeros_like(next(iter(components.values())))
     )
     for name in COMPONENT_WEIGHTS:
+        if name == "R":
+            continue
         weight = weights.get(name, 0.0)
-        if weight == 0.0:
+        if weight == 0.0 or name not in components:
             continue
         if name in ("G", "A"):
             scores += weight * components[name][None, :]
@@ -458,24 +480,33 @@ def evaluate_config(
 
 
 def config_label(config: dict[str, float]) -> str:
-    return (
-        f"wP={config['P']:.1f}, wM={config['M']:.1f}, "
-        f"wG={config['G']:.1f}, wA={config['A']:.1f}, "
-        f"wC={config['C']:.1f}"
+    label = (
+        f"wP={config.get('P',0):.1f}, wM={config.get('M',0):.1f}, "
+        f"wG={config.get('G',0):.1f}, wA={config.get('A',0):.1f}, "
+        f"wC={config.get('C',0):.1f}"
     )
+    if 'K' in config:
+        label += f", wK={config['K']:.1f}"
+    return label
 
 
 def simplicity(config: dict[str, float]):
-    active = sum(config[name] != 0.0 for name in COMPONENT_WEIGHTS)
-    total = sum(config[name] for name in COMPONENT_WEIGHTS)
+    weights_list = []
+    for name in COMPONENT_WEIGHTS:
+        if name == 'R':
+            continue
+        weights_list.append(config.get(name, 0.0))
+    active = sum(w != 0.0 for w in weights_list)
+    total = sum(weights_list)
     return (
         active,
         total,
-        config["P"],
-        config["M"],
-        config["G"],
-        config["A"],
-        config["C"],
+        config.get("P", 0.0),
+        config.get("M", 0.0),
+        config.get("G", 0.0),
+        config.get("A", 0.0),
+        config.get("C", 0.0),
+        config.get("K", 0.0),
     )
 
 
@@ -485,37 +516,44 @@ def grid_search(
     truth: dict[int, set[int]],
     pool: np.ndarray,
     fallback: list[int],
+    include_k: bool = False,
 ):
     configs = []
+    if include_k and "K" in components:
+        wks = WK_VALUES
+    else:
+        wks = (0.0,)
     for wp in WP_VALUES:
         for wm in WM_VALUES:
             for wg in WG_VALUES:
                 for wa in WA_VALUES:
                     for wc in WC_VALUES:
-                        weights = {
-                            "P": wp,
-                            "M": wm,
-                            "G": wg,
-                            "A": wa,
-                            "C": wc,
-                        }
-                        metrics = evaluate_config(
-                            components,
-                            users,
-                            truth,
-                            pool,
-                            fallback,
-                            weights,
-                        )
-                        configs.append(
-                            {
-                                **weights,
-                                "map_all": metrics["map_all"],
-                                "map_with_truth": metrics[
-                                    "map_with_truth"
-                                ],
+                        for wk in wks:
+                            weights = {
+                                "P": wp,
+                                "M": wm,
+                                "G": wg,
+                                "A": wa,
+                                "C": wc,
+                                "K": wk,
                             }
-                        )
+                            metrics = evaluate_config(
+                                components,
+                                users,
+                                truth,
+                                pool,
+                                fallback,
+                                weights,
+                            )
+                            configs.append(
+                                {
+                                    **weights,
+                                    "map_all": metrics["map_all"],
+                                    "map_with_truth": metrics[
+                                        "map_with_truth"
+                                    ],
+                                }
+                            )
     best = max(configs, key=lambda config: config["map_all"])
     near_best = [
         config
