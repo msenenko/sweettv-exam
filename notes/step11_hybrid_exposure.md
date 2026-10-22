@@ -30,3 +30,5 @@ Simplicity pick: wP=0, wM=0, wG=2, wA=0, wC=0, wE=4 MAP=0.588929
 - drop A: MAP=0.590785, delta=0.000000
 - drop C: MAP=0.590785, delta=0.000000
 - drop E: MAP=0.567146, delta=-0.023640
+---
+Validation MAP@5 for all step 11 configs was computed on lists cut to 5 (the bug was only in the test writer); fixed writer script is scripts/predict_step11_fixed.py.
