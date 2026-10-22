@@ -1,0 +1,25 @@
+# Data (competition files, local artifacts)
+data/
+
+# Kaggle / API credentials
+kaggle.json
+access_token
+.kaggle/
+*.token
+*.env
+.env
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
