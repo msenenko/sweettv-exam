@@ -11,3 +11,4 @@
 - Messages: first hybrid `Сененко Мария & mariasenenko | hyb wp2 wm0 wg1 wa1.5 wc1 val0.5778`; second `Сененко Мария & mariasenenko | hyb wp2 wm0.5 wg1 wa2 wc2 val0.5797`.
 - All files validated (1,260 users in template order, 5 distinct ids, ids in test pool). Normalisation for hybrid is the `alternative` variant specified.
 - Validation gains transferred to test: PPR 0.572 -> hybrid chosen 0.578 (+0.006) gave public 0.417->0.424, private 0.392->0.404. Best-overall 0.580 gave public 0.438, private 0.413 (further improvement). Test remains below validation due to distribution shift.
+| 2026-10-22 | sweet.tv - TV program recommender | Hybrid + E + R(sum frac) (Claude sugg.), wP=0.0, wM=0.5, wG=2.0, wA=0.0, wC=0.0, wE=3.0, alt norm, refit 11-30, target 31-42 | 0.592977 | `submissions/hybrid_exp2_wp0_wm0.5_wg2_wa0_wc0_we3_rfrac_val0.5930.csv` | `9fe7a52` | 0.44283 | 0.42824 | 57539850 | complete |
