@@ -1,7 +1,16 @@
 # sweet.tv TV program recommender
 
+## Environment
+- Python 3.13.5
+- pandas 3.1.0, numpy 2.5.3, scipy 1.18.1, implicit 0.7.3, scikit-learn 1.7.2, tqdm, kaggle 2.2.4 (macOS arm64)
+
 ## Data
-Place original competition data in `data/` (interactions/logs/schedules). `data/` is gitignored.
+Place original competition data in `data/`. Download from Kaggle:
+```bash
+kaggle competitions download -c sweettv-tv-program-recommender -p data
+unzip -o data/sweettv-tv-program-recommender.zip -d data
+```
+`data/` is gitignored.
 
 ## Pipeline
 - `src/interactions.py` - build user-item interactions from logs and schedules
@@ -21,8 +30,9 @@ Fit on ISO weeks 11-20, validate on 21-30. Truth = user-show with `frac >= 0.8`.
 **Kaggle:** public 0.44283, private 0.42824, ref 57539850, team `Сененко Мария & mariasenenko`
 
 ### Exact command sequence to regenerate from raw data
-1. `python3 -c "from interactions import build_interactions; build_interactions()"` (build `data/interactions.pkl`)
-2. `python3 scripts/predict_step12.py` (builds components from weeks 11-30: R = log1p(sum of frac, frac>=0.3), E via channel exposure, hybrid wM=0.5,wG=2,wE=3, writes the final submission to `submissions/hybrid_exp2_wp0_wm0.5_wg2_wa0_wc0_we3_rfrac_val0.5930.csv`)
+From repo root:
+1. `PYTHONPATH=src python3 src/interactions.py` (build `data/interactions.pkl`)
+2. `PYTHONPATH=src python3 scripts/predict_step12.py` (builds components from weeks 11-30: R = log1p(sum of frac, frac>=0.3), E via channel exposure, hybrid wM=0.5,wG=2,wE=3; edit output path or rename to produce `submissions/hybrid_exp2_wp0_wm0.5_wg2_wa0_wc0_we3_rfrac_val0.5930.csv`)
 
 ## Steps and notes
 - Step 1-2: `notes/step2_interactions.md`
