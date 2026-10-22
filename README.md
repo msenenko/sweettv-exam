@@ -30,3 +30,6 @@ Seeds: MF uses `random_state=42`, `num_threads=1`. PPR is deterministic.
 
 ## Notes
 All results are in `notes/`. Scripts in `src/` and `scripts/`. Submissions in `submissions/`.
+
+## Designated final submission
+Final config: R = log1p(sum of frac), wM=0.5, wG=2, wE=3, others 0, alternative normalization. Test file: `submissions/hybrid_exp2_wp0_wm0.5_wg2_wa0_wc0_we3_rfrac_val0.5930.csv`. Reproduce: `python3 scripts/predict_step12.py` (refits on weeks 11-30, target window 31-42).
