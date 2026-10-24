@@ -1,0 +1,27 @@
+PREDICT_GAIN_TARGET: >= +0.0030 (to >=0.5960) from hybrid 0.592977
+building features
+cached data/rerank_val_features.pkl
+shape (106986, 22) positives 14590 elapsed_prep 228.45327591896057
+fold 0
+fold_res 0 0.5810218253968255
+fold 1
+fold_res 1 0.5953957231040563
+fold 2
+fold_res 2 0.6248875661375662
+fold 3
+fold_res 3 0.5936353615520281
+fold 4
+fold_res 4 0.5968298059964726
+OOF_MAP_ALL 0.5983540564373898 HYBRID_BASELINE 0.592977 gain 0.005377056437389838
+Rcnt                  0.0
+weeks_since           0.0
+Rcnt_maxn             0.0
+share_topch_target    0.0
+target_air            0.0
+cat                   0.0
+u_dist                0.0
+u_qual_cnt            0.0
+weeks_cnt             0.0
+Hrank                 0.0
+dtype: float64
+elapsed_total 246.66693782806396

@@ -1,0 +1,13 @@
+PREDICT_GAIN_TARGET: >= +0.0030 (to >=0.5960) from hybrid 0.592977
+shape (106986, 22) positives 14590.0 elapsed_prep 228.8083860874176
+Traceback (most recent call last):
+  File "/Users/maria/Documents/sweettv-exam/scripts/rerank.py", line 160, in <module>
+    main()
+    ~~~~^^
+  File "/Users/maria/Documents/sweettv-exam/scripts/rerank.py", line 138, in main
+    g2 = g.sort_values('oof',ascending=False)
+  File "/Users/maria/Library/Python/3.13/lib/python/site-packages/pandas/core/frame.py", line 9330, in sort_values
+    k = self._get_label_or_level_values(by[0], axis=axis)
+  File "/Users/maria/Library/Python/3.13/lib/python/site-packages/pandas/core/generic.py", line 1708, in _get_label_or_level_values
+    raise KeyError(key)
+KeyError: 'oof'

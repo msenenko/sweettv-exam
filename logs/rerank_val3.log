@@ -1,0 +1,4 @@
+PREDICT_GAIN_TARGET: >= +0.0030 (to >=0.5960) from hybrid 0.592977
+building features
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/loky-26073-et_gcikj'}
+  warnings.warn(
